@@ -177,7 +177,7 @@ class Battleship {
     this.myFleet = gameController
       .InitializeShips()
       .map((ship) => new Ship(ship.name, ship.size));
-
+  
     console.log(
       `Please position your fleet (Game board size is from ${cliColor.yellow(
         "A",
@@ -185,28 +185,51 @@ class Battleship {
         "1",
       )} to ${cliColor.yellow("8")}) :`,
     );
-
-    this.myFleet.forEach(function (ship) {
+  
+    this.myFleet.forEach((ship) => {
       console.log();
       console.log(
         `Please enter the positions for the ${
           ship.name
         } (size: ${cliColor.yellow(ship.size)})`,
       );
-      for (var i = 1; i < ship.size + 1; i++) {
-        console.log(`Enter position ${i} of ${ship.size} (i.e A3):`);
-        const position = readline.question();
-        telemetryWorker.postMessage({
-          eventName: "Player_PlaceShipPosition",
-          properties: {
-            Position: position,
-            Ship: ship.name,
-            PositionInShip: i,
-          },
-        });
-        ship.addPosition(Battleship.ParsePosition(position));
+      
+      let isValidPlacement = false;
+      while (!isValidPlacement) {
+        const positions = [];
+        for (let i = 1; i <= ship.size; i++) {
+          console.log(`Enter position ${i} of ${ship.size} (i.e A3):`);
+          const position = readline.question();
+          positions.push(position);
+        }
+        
+        isValidPlacement = this.validateShipPlacement(ship, positions);
+        
+        if (isValidPlacement) {
+          positions.forEach((pos, index) => {
+            telemetryWorker.postMessage({
+              eventName: "Player_PlaceShipPosition",
+              properties: {
+                Position: pos,
+                Ship: ship.name,
+                PositionInShip: index + 1,
+              },
+            });
+            ship.addPosition(Battleship.ParsePosition(pos));
+          });
+        } else {
+          console.log(cliColor.red("Invalid ship placement. Please try again."));
+        }
       }
     });
+  }
+  validateShipPlacement(ship, positions) {
+    // check that ship has the correct size
+    console.log(positions)
+    if (positions.length !== ship.size) {
+      return false;
+    }
+    return true;
   }
 
   InitializeEnemyFleet() {
