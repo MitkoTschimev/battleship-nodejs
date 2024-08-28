@@ -195,7 +195,6 @@ class Battleship {
           console.log(`Enter position ${i} of ${ship.size} (e.g., A3):`);
           const pos = Battleship.ParsePosition(readline.question());
 
-          // Check if the position is already entered for this ship
           if (
             positions.some((p) => p.row === pos.row && p.column === pos.column)
           ) {
@@ -204,15 +203,71 @@ class Battleship {
                 "Error: This position has already been entered. Please re-enter the positions for this ship.",
               ),
             );
-            positions = []; // Clear the positions to start over
+            positions = [];
             break;
           }
 
           if (this.IsPositionOccupied(this.myFleet, pos.row, pos.column)) {
-            console.error(
-              `Position ${pos} already occupied by another ship. Please re-enter the positions for this ship.`,
+            console.log(
+              cliColor.red(
+                "Error: Position already occupied by another ship. Please re-enter the positions for this ship.",
+              ),
             );
-            positions = []; // Clear the positions to start over
+            positions = [];
+            break;
+          }
+
+          positions.push(pos);
+        }
+
+        if (
+          positions.length === ship.size &&
+          this.ArePositionsValid(positions)
+        ) {
+          positions.forEach((pos) => ship.addPosition(pos));
+          validPlacement = true;
+        } else {
+          console.log(
+            cliColor.red(
+              "Invalid positions. Please ensure the positions are aligned and try again.",
+            ),
+          );
+        }
+      }
+    });
+  }
+
+  InitializeMyFleet() {
+    this.myFleet = gameController
+      .InitializeShips()
+      .map((ship) => new Ship(ship.name, ship.size));
+
+    console.log(
+      `Please position your fleet (Game board size is from ${cliColor.yellow("A")} to ${cliColor.yellow("H")} and ${cliColor.yellow("1")} to ${cliColor.yellow("8")}) :`,
+    );
+
+    this.myFleet.forEach((ship) => {
+      console.log();
+      console.log(
+        `Please enter the positions for the ${ship.name} (size: ${cliColor.yellow(ship.size)})`,
+      );
+
+      let validPlacement = false;
+      while (!validPlacement) {
+        let positions = [];
+        for (let i = 1; i <= ship.size; i++) {
+          console.log(`Enter position ${i} of ${ship.size} (e.g., A3):`);
+          const pos = Battleship.ParsePosition(readline.question());
+
+          if (
+            positions.some((p) => p.row === pos.row && p.column === pos.column)
+          ) {
+            console.log(
+              cliColor.red(
+                "Error: This position has already been entered. Please re-enter the positions for this ship.",
+              ),
+            );
+            positions = [];
             break;
           }
 
@@ -220,13 +275,74 @@ class Battleship {
         }
 
         if (positions.length === ship.size) {
-          positions.forEach((pos) => ship.addPosition(pos));
-          validPlacement = true;
-        } else {
-          console.log(cliColor.red("Invalid positions. Please try again."));
+          const inferredOrientation = this.InferOrientation(positions);
+
+          if (
+            this.IsValidPlacement(
+              ship,
+              positions[0].row,
+              positions[0].column,
+              inferredOrientation,
+            )
+          ) {
+            let isOverlap = false;
+
+            for (let i = 0; i < ship.size; i++) {
+              const row =
+                inferredOrientation === "vertical"
+                  ? positions[0].row + i
+                  : positions[0].row;
+              const col =
+                inferredOrientation === "horizontal"
+                  ? positions[0].column + i
+                  : positions[0].column;
+
+              if (this.IsPositionOccupied(this.myFleet, row, col)) {
+                console.log(
+                  cliColor.red(
+                    "Error: Position already occupied by another ship. Please re-enter the positions for this ship.",
+                  ),
+                );
+                isOverlap = true;
+                break;
+              }
+            }
+
+            if (!isOverlap) {
+              for (let i = 0; i < ship.size; i++) {
+                const row =
+                  inferredOrientation === "vertical"
+                    ? positions[0].row + i
+                    : positions[0].row;
+                const col =
+                  inferredOrientation === "horizontal"
+                    ? positions[0].column + i
+                    : positions[0].column;
+                ship.addPosition(new position(letters.get(col), row));
+              }
+              validPlacement = true;
+            }
+          } else {
+            console.log(cliColor.red("Invalid placement. Please try again."));
+          }
         }
       }
     });
+  }
+
+  InferOrientation(positions) {
+    if (positions.length < 2) {
+      console.error("Not enough positions to infer orientation.");
+    }
+    if (positions[0].row === positions[1].row) {
+      return "horizontal";
+    } else if (positions[0].column === positions[1].column) {
+      return "vertical";
+    } else {
+      console.error(
+        "Invalid positions for ship placement. They must be aligned horizontally or vertically.",
+      );
+    }
   }
 
   InitializeEnemyFleet() {
