@@ -227,8 +227,16 @@ class Battleship {
     // check that ship has the correct size
     console.log(positions)
     if (positions.length !== ship.size) {
+      console.log(cliColor.red(`Invalid number of positions. Expected ${ship.size}, got ${positions.length}.`));
       return false;
     }
+
+    const uniquePositions = new Set(positions);
+    if (uniquePositions.size !== positions.length) {
+      console.log(cliColor.red("Duplicate positions detected. Each position must be unique."));
+      return false;
+    }
+
     return true;
   }
 
