@@ -89,7 +89,7 @@ class Battleship {
       var isFleetRuined = gameController.isAllShipsSunk(this.enemyFleet);
       if (isFleetRuined) {
         console.log("You are the winner!");
-        break
+        break;
       }
 
       telemetryWorker.postMessage({
@@ -122,7 +122,7 @@ class Battleship {
       var isFleetRuined = gameController.isAllShipsSunk(this.myFleet);
       if (isFleetRuined) {
         console.log("You lost!");
-        break
+        break;
       }
 
       telemetryWorker.postMessage({

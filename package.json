@@ -7,6 +7,7 @@
     "mocha": "mocha ./**/*Tests.js",
     "cucumber": "./node_modules/.bin/cucumber-js ./GameController_ATDD",
     "test": "npm run mocha && npm run cucumber",
+    "test:cucumber": "npm run cucumber",
     "start": "node index.js"
   },
   "author": "",
