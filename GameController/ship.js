@@ -1,3 +1,5 @@
+const Letters = require("./letters");
+
 class Ship {
   constructor(name, size, color) {
     this.name = name;
@@ -24,20 +26,21 @@ class Ship {
     if (this.positions.length !== this.size) return false;
 
     // Extract rows and columns
-    const rows = this.positions.map((pos) => pos[0]);
-    const cols = this.positions.map((pos) => pos[1]);
+    const rows = this.positions.map((pos) => pos.row);
+    const columns = this.positions.map((pos) => Letters.get(pos.column).value);
 
     // Check if all positions are in the same row
     const isHorizontal = rows.every((row) => row === rows[0]);
 
     // Check if all positions are in the same column
-    const isVertical = cols.every((col) => col === cols[0]);
+    const isVertical = columns.every((column) => column === columns[0]);
 
     if (isHorizontal) {
       // Ensure columns are consecutive
-      const sortedCols = [...cols].sort((a, b) => a - b);
-      return sortedCols.every(
-        (col, index) => index === 0 || col === sortedCols[index - 1] + 1,
+      const sortedColumns = [...columns].sort((a, b) => a - b);
+      return sortedColumns.every(
+        (column, index) =>
+          index === 0 || column === sortedColumns[index - 1] + 1,
       );
     } else if (isVertical) {
       // Ensure rows are consecutive
